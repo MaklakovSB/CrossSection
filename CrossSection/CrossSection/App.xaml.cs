@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CrossSection.Interfaces;
+using CrossSection.Views;
+using CrossSection.ViewModels;
 using System.Windows;
 
 namespace CrossSection
@@ -13,5 +10,17 @@ namespace CrossSection
     /// </summary>
     public partial class App : Application
     {
+
+        /// <summary>
+        /// Точка входа.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            var mainView = new MainView(new MainViewModel());
+            mainView.Show();
+        }
     }
 }
