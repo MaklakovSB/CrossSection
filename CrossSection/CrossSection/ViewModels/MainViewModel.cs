@@ -50,6 +50,23 @@ namespace CrossSection.ViewModels
         }
         private ICommand _getSphereMain3DObjectModelCommand;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public ICommand GetCubeMain3DObjectModelCommand
+        {
+            get
+            {
+                if (_getCubeMain3DObjectModelCommand == null)
+                {
+                    _getCubeMain3DObjectModelCommand = new DelegateCommand(GetCubeMain3DObjectModel);
+                }
+
+                return _getCubeMain3DObjectModelCommand;
+            }
+        }
+        private ICommand _getCubeMain3DObjectModelCommand;
+
         public MainViewModel()
         {
             Main3DObjectModel.Positions.Add(new Point3D { X = -20, Y = 0, Z = -20 });
@@ -84,7 +101,18 @@ namespace CrossSection.ViewModels
             OnPropertyChanged(nameof(Main3DObjectModel.TriangleIndices));
             OnPropertyChanged(nameof(Main3DObjectModel.Positions));
 
-            Main3DObjectModel.GetSphere(10, 12);
+            Main3DObjectModel.GetSphere(10, 5);
+        }
+
+        private void GetCubeMain3DObjectModel()
+        {
+            Main3DObjectModel.TriangleIndices = null;
+            Main3DObjectModel.Positions = null;
+            OnPropertyChanged(nameof(Main3DObjectModel.TriangleIndices));
+            OnPropertyChanged(nameof(Main3DObjectModel.Positions));
+
+            Main3DObjectModel.GetCube(10, 2);
+
         }
     }
 }

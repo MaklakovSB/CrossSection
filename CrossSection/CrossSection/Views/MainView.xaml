@@ -26,7 +26,7 @@
 
         <StackPanel Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Orientation="Horizontal">
             <StackPanel HorizontalAlignment="Left">
-                <Button Width="160" Content="Куб" />
+                <Button Width="160" Content="Куб" Command="{Binding GetCubeMain3DObjectModelCommand}"/>
                 <Button Width="160" Content="Сфера" Command="{Binding GetSphereMain3DObjectModelCommand}"/>
                 <Button Width="160" Content="Очистить" Command="{Binding ClearMain3DObjectModelCommand}"/>
             </StackPanel>
@@ -149,7 +149,7 @@
                     </ModelVisual3D>
                     -->
                     <!-- Жёлтая плоскость -->
-                    
+                    <!--
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
                             <GeometryModel3D>
@@ -198,7 +198,7 @@
                             </GeometryModel3D>
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
-                    
+                    -->
                 </Viewport3D.Children>
 
             </Viewport3D>
