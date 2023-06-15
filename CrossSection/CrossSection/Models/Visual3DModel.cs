@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -96,6 +94,9 @@ namespace CrossSection.Models
         }
         private int _crossCircleCount = 0;
 
+        /// <summary>
+        /// Количество точек.
+        /// </summary>
         public int PositionsCount
         {
             get => _positionsCount;
@@ -425,6 +426,10 @@ namespace CrossSection.Models
             return result;
         }
 
+        /// <summary>
+        /// Метод триангуляции куба с фаской и ...
+        /// </summary>
+        /// <returns></returns>
         private Int32Collection CubeTriangle()
         {
             int I = 0;
@@ -469,20 +474,20 @@ namespace CrossSection.Models
 
                         if (n > 0)
                         {
-                            I = i + j + 1;  //y
-                            II = i + j + 2; //z
-                            III = i + j + 3 + 2; //z
-                            IV = i + j + 3 + 1;  //y
+                            I = i + j + 1;          //y
+                            II = i + j + 2;         //z
+                            III = i + j + 3 + 2;    //z
+                            IV = i + j + 3 + 1;     //y
                         }
                         else
                         {
-                            I = i + j + 1;  //y
-                            II = i + j;     //x
+                            I = i + j + 1;          //y
+                            II = i + j;             //x
 
                             if (j + 3 == 12)
                             {
-                                III = i;    //x
-                                IV = i + 1; //y
+                                III = i;            //x
+                                IV = i + 1;         //y
                             }
                             else
                             {
@@ -520,11 +525,6 @@ namespace CrossSection.Models
                 n = 1;
                 for (var i = 0; i < 4 ; i++ )
                 {
-                    //int I = 0;
-                    //int II = 0;
-                    //int III = 0;
-                    //int IV = 0;
-
                     if (n > 0)
                     {
                         I = i * 3 + 2;         // z
@@ -551,15 +551,10 @@ namespace CrossSection.Models
                     n *= -1;
                 }
 
-                // Триангулируем грани куба.
+                // Триангулируем 4 грани куба.
                 n = 1;
                 for (var i = 0; i < 4 ; i++)
                 {
-                    //int I = 0;
-                    //int II = 0;
-                    //int III = 0;
-                    //int IV = 0;
-
                     I = i;
                     II = i + 1;
 
@@ -595,6 +590,7 @@ namespace CrossSection.Models
                     n *= -1;
                 }
 
+                // Триангулируем верхнюю грань.
                 I = 0 * 3 + 1;
                 II = 1 * 3 + 1;
                 III = 2 * 3 + 1;
@@ -608,6 +604,7 @@ namespace CrossSection.Models
                 result.Add(IV);
                 result.Add(I);
 
+                // Триангулируем нижнюю грань.
                 I = 7 * 3 + 1;
                 II = 6 * 3 + 1;
                 III = 5 * 3 + 1;
@@ -620,8 +617,11 @@ namespace CrossSection.Models
                 result.Add(III);
                 result.Add(IV);
                 result.Add(I);
-
-
+            }
+            else
+            {
+                throw new NotSupportedException();
+                // TODO:
             }
 
             return result;

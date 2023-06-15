@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="MainView" 
         Height="450" 
-        Width="800">
+        Width="992">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -19,46 +19,141 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="75"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Orientation="Horizontal">
-            <StackPanel HorizontalAlignment="Left">
-                <Button Width="160" Content="Куб" Command="{Binding GetCubeMain3DObjectModelCommand}"/>
-                <Button Width="160" Content="Сфера" Command="{Binding GetSphereMain3DObjectModelCommand}"/>
-                <Button Width="160" Content="Очистить" Command="{Binding ClearMain3DObjectModelCommand}"/>
-            </StackPanel>
-            <StackPanel>
-                <Slider Width="160" x:Name="AngleSliderX" Minimum="0" Maximum="360" Value="0"/>
-                <Slider Width="160" x:Name="AngleSliderY" Minimum="0" Maximum="360" Value="0"/>
-                <Slider Width="160" x:Name="AngleSliderZ" Minimum="0" Maximum="360" Value="0"/>
-            </StackPanel>
-        </StackPanel>
+        <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="2"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
+            <DockPanel Grid.Column="1"
+                       Grid.Row="0"
+                       HorizontalAlignment="Left">
+                <TextBlock Text="Вращение вокруг оси X"/>
+                <Slider Width="360"
+                        Margin="8,0,0,0"
+                        x:Name="AngleSliderX"
+                        Minimum="0"
+                        Maximum="360"
+                        Value="0"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="1"
+                       Grid.Row="1"
+                       HorizontalAlignment="Left">
+                <TextBlock Text="Вращение вокруг оси Y"/>
+                <Slider Width="360"
+                        Margin="8,0,0,0"
+                        x:Name="AngleSliderY"
+                        Minimum="0"
+                        Maximum="360"
+                        Value="0"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="1"
+                       Grid.Row="2"
+                       HorizontalAlignment="Left">
+                <TextBlock Text="Вращение вокруг оси Z"/>
+                <Slider Width="360"
+                        Margin="8,0,0,0"
+                        x:Name="AngleSliderZ"
+                        Minimum="0"
+                        Maximum="360"
+                        Value="0"/>
+            </DockPanel>
+
+            <Button Grid.Column="2"
+                    Grid.Row="0"
+                    Margin="1"
+                    Content="Куб"
+                    Command="{Binding GetCubeMain3DObjectModelCommand}"/>
+
+            <DockPanel Grid.Column="2"
+                       Grid.Row="1">
+                <Label Content="Сторона"/>
+                <TextBox Margin="1" Text="{Binding CubeSide, 
+                                                   Mode=TwoWay,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="2"
+                       Grid.Row="2">
+                <Label Content="Фаска"/>
+                <TextBox Margin="1" Text="{Binding CubeChamferPrecent, 
+                                                   Mode=TwoWay,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <Button Grid.Column="3"
+                    Grid.Row="0"
+                    Margin="1"
+                    Content="Сфера"
+                    Command="{Binding GetSphereMain3DObjectModelCommand}"/>
+
+            <DockPanel Grid.Column="3"
+                       Grid.Row="1">
+                <Label Content="Радиус"/>
+                <TextBox Margin="1" Text="{Binding SphereRadius, 
+                                                   Mode=TwoWay, 
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="3"
+                       Grid.Row="2">
+                <Label Content="Шаг угла"/>
+                <TextBox Margin="1" Text="{Binding SphereAngleStep, 
+                                                   Mode=TwoWay,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <Button Grid.Column="4"
+                    Grid.Row="0"
+                    Grid.RowSpan="3"
+                    Margin="1"
+                    Content="Очистить"
+                    Command="{Binding ClearMain3DObjectModelCommand}"/>
+
+        </Grid>
+        
         <Border Grid.Column="1" Grid.Row="2" BorderBrush="Gray" BorderThickness="0.6" Margin="2">
             <Viewport3D ClipToBounds="True">
 
                 <Viewport3D.Camera>
-                    <PerspectiveCamera Position="0,0,100" FieldOfView="55" />
+                    <PerspectiveCamera Position="0,0,50" FieldOfView="55" />
                 </Viewport3D.Camera>
 
                 <Viewport3D.Children>
 
                     <!-- Свет из точки <OrthographicCamera Position="0,0,100" LookDirection="1,1,1" UpDirection="100" /> -->
+
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
-                            <PointLight  Color="#FFFFFFFF" Position="0 0 100000"/>
+                            <PointLight  Color="#FFFFFFFF" Position="1000 100 100000"/>
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
 
+
                     <!-- Свет направленный -->
+                    <!--
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
                             <DirectionalLight Color="#FFFFFFFF"  Direction="0 0 0" />
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
+                    -->
 
                     <!-- Основной 3D объект -->
                     <ModelVisual3D>
