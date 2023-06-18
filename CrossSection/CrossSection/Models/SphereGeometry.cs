@@ -1,7 +1,5 @@
-﻿using CrossSection.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -30,37 +28,9 @@ namespace CrossSection.Models
     // а точка южного полюса имеет последний допустимый индекс коллекции. Между этими двумя элементами
     // коллекции располагаются точки поперечных окружностей начиная от самой "севарной" к самой "южной"
     // точки этих окружностей расположены в порядке их расчёта - от нуля нрадусов против часовой стрелки.
-    public class SphereGeometry: IGeometry, INotifyPropertyChanged
+    public class SphereGeometry: Geometry
     {
         #region Свойства.
-
-        /// <summary>
-        /// Коллекция вершин геометрии сферы.
-        /// </summary>
-        public Point3DCollection Positions
-        {
-            get => _positions;
-            set
-            {
-                _positions = value;
-                OnPropertyChanged(nameof(Positions));
-            }
-        }
-        private Point3DCollection _positions = new Point3DCollection();
-
-        /// <summary>
-        /// Коллекция индексов вершин геометрии.
-        /// </summary>
-        public Int32Collection TriangleIndices
-        {
-            get => _triangleIndices;
-            set
-            {
-                _triangleIndices = value;
-                OnPropertyChanged(nameof(TriangleIndices));
-            }
-        }
-        private Int32Collection _triangleIndices = new Int32Collection();
 
         /// <summary>
         /// Угловой шаг расчёта вершин сферы.
@@ -341,27 +311,25 @@ namespace CrossSection.Models
         }
 
         /// <summary>
-        /// Получить сферу.
+        /// Построить геометрию сферы.
         /// </summary>
-        /// <param name="angleStep"></param>
-        /// <param name="radius"></param>
-        public void GetSphere(double angleStep, double radius)
+        /// <param name="args"></param>
+        public override void BuildGeometry(object[] args)
         {
-            Positions = GetPointsOnSphere(angleStep, radius);
-            TriangleIndices = SphereTriangle();
+            if (args.Length == 2)
+            {
+                double? angleStep = args[0] as double?;
+                double? radius = args[1] as double?;
+
+                if (angleStep != null && radius != null)
+                {
+                    Positions = GetPointsOnSphere((double)angleStep, (double)radius);
+                    TriangleIndices = SphereTriangle();
+                }
+            }
         }
 
         #endregion Методы.
 
-        #region Имплементация INotifyPropertyChanged.
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion Имплементация INotifyPropertyChanged.
     }
 }

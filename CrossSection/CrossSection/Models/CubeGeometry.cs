@@ -1,42 +1,12 @@
-﻿using CrossSection.Interfaces;
-using System;
-using System.ComponentModel;
+﻿using System;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
 namespace CrossSection.Models
 {
-    public class CubeGeometry : IGeometry, INotifyPropertyChanged
+    public class CubeGeometry : Geometry
     {
         #region Свойства.
-
-        /// <summary>
-        /// Коллекция вершин геометрии сферы.
-        /// </summary>
-        public Point3DCollection Positions
-        {
-            get => _positions;
-            set
-            {
-                _positions = value;
-                OnPropertyChanged(nameof(Positions));
-            }
-        }
-        private Point3DCollection _positions = new Point3DCollection();
-
-        /// <summary>
-        /// Коллекция индексов вершин геометрии.
-        /// </summary>
-        public Int32Collection TriangleIndices
-        {
-            get => _triangleIndices;
-            set
-            {
-                _triangleIndices = value;
-                OnPropertyChanged(nameof(TriangleIndices));
-            }
-        }
-        private Int32Collection _triangleIndices = new Int32Collection();
 
         /// <summary>
         /// Величина стороны куба.
@@ -408,27 +378,24 @@ namespace CrossSection.Models
         }
 
         /// <summary>
-        /// Получить куб.
+        /// Построить геометрию куба.
         /// </summary>
-        /// <param name="sideSize"></param>
-        /// <param name="chamferPrecent"></param>
-        public void GetCube(double sideSize, double chamferPrecent = 0)
+        /// <param name="args"></param>
+        public override void BuildGeometry(object[] args)
         {
-            Positions = GetPointsOnCube(sideSize, chamferPrecent);
-            TriangleIndices = CubeTriangle();
+            if (args.Length == 2)
+            {
+                double? sideSize = args[0] as double?;
+                double? chamferPrecent = args[1] as double?;
+
+                if (sideSize != null && chamferPrecent != null)
+                {
+                    Positions = GetPointsOnCube((double)sideSize, (double)chamferPrecent);
+                    TriangleIndices = CubeTriangle();
+                }
+            }
         }
 
         #endregion Методы.
-
-        #region Имплементация INotifyPropertyChanged.
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion Имплементация INotifyPropertyChanged.
     }
 }

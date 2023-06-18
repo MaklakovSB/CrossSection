@@ -14,5 +14,12 @@ namespace CrossSection.Interfaces
         /// Коллекция индексов вершин геометрии.
         /// </summary>
         Int32Collection TriangleIndices{ get; set; }
+
+        /// <summary>
+        /// Построить геометрию.
+        /// </summary>
+        /// <param name="args"></param>
+        void BuildGeometry(object[] args );
+
     }
 }

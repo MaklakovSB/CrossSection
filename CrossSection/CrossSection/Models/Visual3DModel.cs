@@ -57,7 +57,7 @@ namespace CrossSection.Models
         /// <param name="radius"></param>
         public void GetSphere(double angleStep, double radius)
         {
-            _sphereGeometry.GetSphere(angleStep, radius);
+            _sphereGeometry.BuildGeometry(new object[] { (double?)angleStep, (double?)radius });
             Positions = _sphereGeometry.Positions;
             TriangleIndices = _sphereGeometry.TriangleIndices;
         }
@@ -69,7 +69,7 @@ namespace CrossSection.Models
         /// <param name="cubeChamferPrecent"></param>
         public void GetCube(double cubeSide, double cubeChamferPrecent = 0)
         {
-            _cubeGeometry.GetCube(cubeSide, cubeChamferPrecent);
+            _cubeGeometry.BuildGeometry(new object[] { (double?)cubeSide, (double?)cubeChamferPrecent });
             Positions = _cubeGeometry.Positions;
             TriangleIndices = _cubeGeometry.TriangleIndices;
         }
