@@ -57,9 +57,12 @@
     </ApplicationDefinition>
     <Compile Include="Delegates\DelegateCommand.cs" />
     <Compile Include="Delegates\DelegateParametrizedCommand.cs" />
+    <Compile Include="Interfaces\IGeometry.cs" />
     <Compile Include="Interfaces\IRaiseCanExecuteChanged.cs" />
     <Compile Include="Interfaces\IView.cs" />
     <Compile Include="Interfaces\IViewModel.cs" />
+    <Compile Include="Models\CubeGeometry.cs" />
+    <Compile Include="Models\SphereGeometry.cs" />
     <Compile Include="Models\Visual3DModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
