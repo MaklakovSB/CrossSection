@@ -1,12 +1,19 @@
 ﻿using CrossSection.Delegates;
+using CrossSection.Interfaces;
 using CrossSection.Models;
 using System.Windows.Input;
-using System.Windows.Media.Media3D;
 
 namespace CrossSection.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
+        #region Поля.
+
+        private CubeGeometry _cubeGeometry = new CubeGeometry();
+        private SphereGeometry _sphereGeometry = new SphereGeometry();
+
+        #endregion Поля.
+
         #region Свойства.
 
         /// <summary>
@@ -66,47 +73,52 @@ namespace CrossSection.ViewModels
         private double _sphereRadius = 5;
 
         /// <summary>
-        /// Основная 3d модель.
+        /// Текушая геометрия.
         /// </summary>
-        public Visual3DModel Main3DObjectModel 
+        public IGeometry CurrentGeometry
         {
-            get => _main3DObjectModel; 
+            get => _currentGeometry;
+            set
+            {
+                _currentGeometry = value;
+                OnPropertyChanged(nameof(CurrentGeometry));
+            }
         }
-        private Visual3DModel _main3DObjectModel = new Visual3DModel();
+        private IGeometry _currentGeometry;
 
         /// <summary>
-        /// Команда очистить основную 3d модель.
+        /// Команда очистить текущую геометрию.
         /// </summary>
-        public ICommand ClearMain3DObjectModelCommand
+        public ICommand ClearCurrentGeometryCommand
         {
             get
             {
-                if (_clearMain3DObjectModelCommand == null)
+                if (_clearCurrentGeometryCommand == null)
                 {
-                    _clearMain3DObjectModelCommand = new DelegateCommand(ClearMain3DObjectModel);
+                    _clearCurrentGeometryCommand = new DelegateCommand(ClearCurrentGeometry);
                 }
 
-                return _clearMain3DObjectModelCommand;
+                return _clearCurrentGeometryCommand;
             }
         }
-        private ICommand _clearMain3DObjectModelCommand;
+        private ICommand _clearCurrentGeometryCommand;
 
         /// <summary>
         /// Команда получить сферу.
         /// </summary>
-        public ICommand GetSphereMain3DObjectModelCommand
+        public ICommand GetSphereCurrentGeometryCommand
         {
             get
             {
-                if (_getSphereMain3DObjectModelCommand == null)
+                if (_getSphereCurrentGeometryCommand == null)
                 {
-                    _getSphereMain3DObjectModelCommand = new DelegateCommand(GetSphereMain3DObjectModel);
+                    _getSphereCurrentGeometryCommand = new DelegateCommand(GetSphereCurrentGeometry);
                 }
 
-                return _getSphereMain3DObjectModelCommand;
+                return _getSphereCurrentGeometryCommand;
             }
         }
-        private ICommand _getSphereMain3DObjectModelCommand;
+        private ICommand _getSphereCurrentGeometryCommand;
 
         /// <summary>
         /// Команда получить куб.
@@ -115,15 +127,15 @@ namespace CrossSection.ViewModels
         {
             get
             {
-                if (_getCubeMain3DObjectModelCommand == null)
+                if (_getCubeCurrentGeometryCommand == null)
                 {
-                    _getCubeMain3DObjectModelCommand = new DelegateCommand(GetCubeMain3DObjectModel);
+                    _getCubeCurrentGeometryCommand = new DelegateCommand(GetCubeCurrentGeometry);
                 }
 
-                return _getCubeMain3DObjectModelCommand;
+                return _getCubeCurrentGeometryCommand;
             }
         }
-        private ICommand _getCubeMain3DObjectModelCommand;
+        private ICommand _getCubeCurrentGeometryCommand;
 
         #endregion Свойства.
 
@@ -132,43 +144,37 @@ namespace CrossSection.ViewModels
         /// </summary>
         public MainViewModel()
         {
-            Main3DObjectModel.Positions.Add(new Point3D { X = -20, Y = 0, Z = -20 });
-            Main3DObjectModel.Positions.Add(new Point3D { X = 20, Y = 0, Z = -20 });
-            Main3DObjectModel.Positions.Add(new Point3D { X = 20, Y = 0, Z = 20 });
-            Main3DObjectModel.Positions.Add(new Point3D { X = -20, Y = 0, Z = 20 });
 
-            Main3DObjectModel.TriangleIndices.Add(2);
-            Main3DObjectModel.TriangleIndices.Add(1);
-            Main3DObjectModel.TriangleIndices.Add(0);
-
-            Main3DObjectModel.TriangleIndices.Add(3);
-            Main3DObjectModel.TriangleIndices.Add(2);
-            Main3DObjectModel.TriangleIndices.Add(0);
         }
 
+        #region Методы.
+
         /// <summary>
-        /// Метод очистки основной 3D модели.
+        /// Метод очистки текущей геометрии.
         /// </summary>
-        private void ClearMain3DObjectModel()
+        private void ClearCurrentGeometry()
         {
-            Main3DObjectModel.TriangleIndices = null;
-            Main3DObjectModel.Positions = null;
+            CurrentGeometry = null;
         }
 
         /// <summary>
         /// Метод получения и отображения сферы.
         /// </summary>
-        private void GetSphereMain3DObjectModel()
+        private void GetSphereCurrentGeometry()
         {
-            Main3DObjectModel.GetSphere(SphereAngleStep, SphereRadius);
+            _sphereGeometry.BuildGeometry(new object[] { (double?)SphereAngleStep, (double?)SphereRadius });
+            CurrentGeometry = _sphereGeometry;
         }
 
         /// <summary>
         /// Метод получения и отображения куба.
         /// </summary>
-        private void GetCubeMain3DObjectModel()
+        private void GetCubeCurrentGeometry()
         {
-            Main3DObjectModel.GetCube(CubeSide, CubeChamferPrecent);
+            _cubeGeometry.BuildGeometry(new object[] { (double?)CubeSide, (double?)CubeChamferPrecent });
+            CurrentGeometry = _cubeGeometry;
         }
+
+        #endregion Методы.
     }
 }

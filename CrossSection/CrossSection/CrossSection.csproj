@@ -64,7 +64,6 @@
     <Compile Include="Models\CubeGeometry.cs" />
     <Compile Include="Models\Geometry.cs" />
     <Compile Include="Models\SphereGeometry.cs" />
-    <Compile Include="Models\Visual3DModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Views\MainView.xaml.cs">

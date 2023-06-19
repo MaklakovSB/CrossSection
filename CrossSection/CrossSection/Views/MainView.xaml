@@ -101,7 +101,7 @@
                     Grid.Row="0"
                     Margin="1"
                     Content="Сфера"
-                    Command="{Binding GetSphereMain3DObjectModelCommand}"/>
+                    Command="{Binding GetSphereCurrentGeometryCommand}"/>
 
             <DockPanel Grid.Column="3"
                        Grid.Row="1">
@@ -124,7 +124,7 @@
                     Grid.RowSpan="3"
                     Margin="1"
                     Content="Очистить"
-                    Command="{Binding ClearMain3DObjectModelCommand}"/>
+                    Command="{Binding ClearCurrentGeometryCommand}"/>
 
         </Grid>
         
@@ -160,8 +160,8 @@
                         <ModelVisual3D.Content>
                             <GeometryModel3D>
                                 <GeometryModel3D.Geometry>
-                                    <MeshGeometry3D Positions="{Binding Path=Main3DObjectModel.Positions}"
-                                                    TriangleIndices="{Binding Path=Main3DObjectModel.TriangleIndices}">
+                                    <MeshGeometry3D Positions="{Binding Path=CurrentGeometry.Positions}"
+                                                    TriangleIndices="{Binding Path=CurrentGeometry.TriangleIndices}">
                                     </MeshGeometry3D>
                                 </GeometryModel3D.Geometry>
 

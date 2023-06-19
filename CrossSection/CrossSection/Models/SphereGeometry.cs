@@ -330,6 +330,5 @@ namespace CrossSection.Models
         }
 
         #endregion Методы.
-
     }
 }
