@@ -30,6 +30,40 @@ namespace CrossSection.Models
     // точки этих окружностей расположены в порядке их расчёта - от нуля нрадусов против часовой стрелки.
     public class SphereGeometry: Geometry
     {
+        public sealed class StepAngle
+        {
+            public static StepAngle Source
+            {
+                get
+                {
+                    return _source;
+                }
+            }
+            private static readonly StepAngle _source = new StepAngle();
+
+            public Dictionary<double, string> StepAngleDictonary { get; private set; }
+
+            private StepAngle() 
+            {
+                StepAngleDictonary = new Dictionary<double, string>();
+                StepAngleDictonary.Add(1.0, "1.00");
+                StepAngleDictonary.Add(2.0, "2.00");
+                StepAngleDictonary.Add(3.0, "3.00");
+                StepAngleDictonary.Add(5.0, "5.00");
+                StepAngleDictonary.Add(6.0, "6.00");
+                StepAngleDictonary.Add(9.0, "9.00");
+                StepAngleDictonary.Add(10.0, "10.00");
+                StepAngleDictonary.Add(15.0, "15.00");
+                StepAngleDictonary.Add(18.0, "18.00");
+                StepAngleDictonary.Add(30.0, "30.00");
+                StepAngleDictonary.Add(45.0, "45.00");
+                StepAngleDictonary.Add(90.0, "90.00");
+            }
+
+            static StepAngle() { }
+
+        }
+
         #region Свойства.
 
         /// <summary>
