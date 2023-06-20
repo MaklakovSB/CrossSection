@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="MainView" 
         Height="450" 
-        Width="992">
+        Width="1240">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -28,6 +28,8 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="80"/>
@@ -79,13 +81,14 @@
                     Grid.Row="0"
                     Margin="1"
                     Content="Куб"
-                    Command="{Binding GetCubeMain3DObjectModelCommand}"/>
+                    Command="{Binding GetCubeCurrentGeometryCommand}"/>
 
             <DockPanel Grid.Column="2"
                        Grid.Row="1">
                 <Label Content="Сторона"/>
                 <TextBox Margin="1" Text="{Binding CubeSide, 
                                                    Mode=TwoWay,
+                                                   StringFormat=N2,
                                                    UpdateSourceTrigger=PropertyChanged}"/>
             </DockPanel>
 
@@ -94,6 +97,7 @@
                 <Label Content="Фаска"/>
                 <TextBox Margin="1" Text="{Binding CubeChamferPrecent, 
                                                    Mode=TwoWay,
+                                                   StringFormat=N2,
                                                    UpdateSourceTrigger=PropertyChanged}"/>
             </DockPanel>
 
@@ -107,19 +111,71 @@
                        Grid.Row="1">
                 <Label Content="Радиус"/>
                 <TextBox Margin="1" Text="{Binding SphereRadius, 
-                                                   Mode=TwoWay, 
+                                                   Mode=TwoWay,
+                                                   StringFormat=N2,
                                                    UpdateSourceTrigger=PropertyChanged}"/>
             </DockPanel>
 
             <DockPanel Grid.Column="3"
                        Grid.Row="2">
                 <Label Content="Шаг угла"/>
-                <TextBox Margin="1" Text="{Binding SphereAngleStep, 
-                                                   Mode=TwoWay,
-                                                   UpdateSourceTrigger=PropertyChanged}"/>
+                <ComboBox SelectedValue="{Binding SphereAngleStep}"
+                          ItemsSource="{Binding StepAngle}"
+                          DisplayMemberPath="Value" SelectedValuePath="Key"/>
+
             </DockPanel>
 
             <Button Grid.Column="4"
+                    Grid.Row="0"
+                    Margin="1"
+                    Content="Верхняя плоскость"
+                    Command="{Binding GetPlaneUpGeometryCommand}"/>
+
+            <DockPanel Grid.Column="4"
+                       Grid.Row="1">
+                <Label Content="Сторона"/>
+                <TextBox Margin="1" Text="{Binding PlaneUpSide, 
+                                                   Mode=TwoWay,
+                                                   StringFormat=N2,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="4"
+                       Grid.Row="2">
+                <Label Content="Координата Y"/>
+                <TextBox Margin="1" Text="{Binding PlaneUpCoordinateY, 
+                                                   Mode=TwoWay,
+                                                   StringFormat=N2,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <Button Grid.Column="5"
+                    Grid.Row="0"
+                    Margin="1"
+                    Content="Нижняя плоскость"
+                    Command="{Binding GetPlaneDownGeometryCommand}"/>
+
+            <DockPanel Grid.Column="5"
+                       Grid.Row="1">
+                <Label Content="Сторона"/>
+                <TextBox Margin="1" Text="{Binding PlaneDownSide, 
+                                                   Mode=TwoWay,
+                                                   StringFormat=N2,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <DockPanel Grid.Column="5"
+                       Grid.Row="2">
+                <Label Content="Координата Y"/>
+                <TextBox Margin="1" Text="{Binding PlaneDownCoordinateY, 
+                                                   Mode=TwoWay,
+                                                   StringFormat=N2,
+                                                   UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+
+
+            <Button Grid.Column="6"
                     Grid.Row="0"
                     Grid.RowSpan="3"
                     Margin="1"
@@ -206,51 +262,63 @@
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
 
-                    <!-- Зелёная плоскость -->
-                    <!--
+                    <!-- Верхняя плоскость -->
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
                             <GeometryModel3D>
                                 <GeometryModel3D.Geometry>
-                                    <MeshGeometry3D Positions="-20, 5,-20  20, 5,-20  20, 5, 20  -20, 5, 20"
-                                                    TriangleIndices="2 1 0  3 2 0">
+                                    <MeshGeometry3D Positions="{Binding Path=PlaneUp.Positions, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                    TriangleIndices="{Binding Path=PlaneUp.TriangleIndices, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
                                     </MeshGeometry3D>
                                 </GeometryModel3D.Geometry>
 
                                 <GeometryModel3D.BackMaterial>
                                     <MaterialGroup>
-                                        <DiffuseMaterial Brush="#2FFF0000"/>
-                                        <SpecularMaterial Brush="#FFFF0000" SpecularPower="10"/>
+                                        <DiffuseMaterial Brush="#2F00FF00"/>
+                                        <SpecularMaterial Brush="#FF00FF00" SpecularPower="10"/>
                                     </MaterialGroup>
                                 </GeometryModel3D.BackMaterial>
 
                                 <GeometryModel3D.Material>
                                     <MaterialGroup>
-                                        <DiffuseMaterial Brush="#2F00FF00"/>
-                                        <SpecularMaterial Brush="#FF00FF00" SpecularPower="10"/>
+                                        <DiffuseMaterial Brush="#2FFF0000"/>
+                                        <SpecularMaterial Brush="#FFFF0000" SpecularPower="10"/>
                                     </MaterialGroup>
                                 </GeometryModel3D.Material>
 
                                 <GeometryModel3D.Transform>
-                                    <RotateTransform3D>
-                                        <RotateTransform3D.Rotation>
-                                            <AxisAngleRotation3D Axis="0.3 0.5 0.13" Angle="55" />
-                                        </RotateTransform3D.Rotation>
-                                    </RotateTransform3D>
+                                    <Transform3DGroup>
+                                        <Transform3DGroup.Children>
+                                            <RotateTransform3D>
+                                                <RotateTransform3D.Rotation>
+                                                    <AxisAngleRotation3D Axis="1 0 0" Angle="{Binding ElementName=AngleSliderX, Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                                                </RotateTransform3D.Rotation>
+                                            </RotateTransform3D>
+                                            <RotateTransform3D>
+                                                <RotateTransform3D.Rotation>
+                                                    <AxisAngleRotation3D Axis="0 1 0" Angle="{Binding ElementName=AngleSliderY, Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                                                </RotateTransform3D.Rotation>
+                                            </RotateTransform3D>
+                                            <RotateTransform3D>
+                                                <RotateTransform3D.Rotation>
+                                                    <AxisAngleRotation3D Axis="0 0 1" Angle="{Binding ElementName=AngleSliderZ, Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                                                </RotateTransform3D.Rotation>
+                                            </RotateTransform3D>
+                                        </Transform3DGroup.Children>
+                                    </Transform3DGroup>
                                 </GeometryModel3D.Transform>
 
                             </GeometryModel3D>
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
-                    -->
-                    <!-- Жёлтая плоскость -->
-                    <!--
+                    
+                    <!-- Нижняя плоскость -->
                     <ModelVisual3D>
                         <ModelVisual3D.Content>
                             <GeometryModel3D>
                                 <GeometryModel3D.Geometry>
-                                    <MeshGeometry3D Positions="-20, 0,-20  20, 0,-20  20, 0,20  -20, 0,20"
-                                                    TriangleIndices="2 1 0  3 2 0">
+                                    <MeshGeometry3D Positions="{Binding Path=PlaneDown.Positions, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                    TriangleIndices="{Binding Path=PlaneDown.TriangleIndices, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
                                     </MeshGeometry3D>
                                 </GeometryModel3D.Geometry>
 
@@ -293,7 +361,7 @@
                             </GeometryModel3D>
                         </ModelVisual3D.Content>
                     </ModelVisual3D>
-                    -->
+                    
                 </Viewport3D.Children>
 
             </Viewport3D>
