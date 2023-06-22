@@ -396,12 +396,16 @@ namespace CrossSection.Models
             // Новый набор вершин.
             var crossSphere = new Point3DCollection();
 
+            var upY = UpY;
+            if (upY > Radius)
+                upY = Radius;
+
             // Добавляем первой вершину северного полюса
             // с модификацией координаты Y.
             crossSphere.Add(new Point3D()
             {
                 X = result.Positions[0].X,
-                Y = UpY,
+                Y = upY,
                 Z = result.Positions[0].Z
             });
 
@@ -493,6 +497,21 @@ namespace CrossSection.Models
                     // Построена усечённая сфера до экватора включительно.
                 }
             }
+            else
+            {
+                var lastElement = result.Positions.Last(c => c.Y == 0);
+
+                for (var i = 1; i < result.Positions.IndexOf(lastElement) + 1; i++)
+                {
+                    crossSphere.Add(new Point3D()
+                    {
+                        X = result.Positions[i].X,
+                        Y = result.Positions[i].Y,
+                        Z = result.Positions[i].Z
+                    });
+                }
+                // Построена усечённая сфера до экватора включительно.
+            }
 
             // Условие сечения нижнего полушария.
             if (DownY > -Radius)
@@ -565,13 +584,33 @@ namespace CrossSection.Models
                     }
                 }
             }
+            else
+            {
+                //var lastElement = result.Positions.Last(c => c.Y == 0);
+                var firstElement = result.Positions.Last(c => c.Y == 0);
+
+                for (var i = result.Positions.IndexOf(firstElement); i < result.Positions.Count; i++)
+                {
+                    crossSphere.Add(new Point3D()
+                    {
+                        X = result.Positions[i].X,
+                        Y = result.Positions[i].Y,
+                        Z = result.Positions[i].Z
+                    });
+                }
+                // Построена усечённая сфера до экватора включительно.
+            }
+
+            var downY = DownY;
+            if (downY < -Radius)
+                downY = -Radius;
 
             // Добавляем последней вершину южного полюса
             // с модификацией координаты Y.
             crossSphere.Add(new Point3D()
             {
                 X = result.Positions[result.Positions.Count - 1].X,
-                Y = DownY,
+                Y = downY,
                 Z = result.Positions[result.Positions.Count - 1].Z
             });
 
