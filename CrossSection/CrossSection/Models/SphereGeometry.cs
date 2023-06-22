@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CrossSection.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -28,7 +30,7 @@ namespace CrossSection.Models
     // а точка южного полюса имеет последний допустимый индекс коллекции. Между этими двумя элементами
     // коллекции располагаются точки поперечных окружностей начиная от самой "севарной" к самой "южной"
     // точки этих окружностей расположены в порядке их расчёта - от нуля нрадусов против часовой стрелки.
-    public class SphereGeometry: Geometry
+    public class SphereGeometry: Geometry, ICrossSection
     {
         public sealed class StepAngle
         {
@@ -158,10 +160,12 @@ namespace CrossSection.Models
         private List<Point3D> GetPointsOnCircleXY(double angleStep, double radius, double Z = 0)
         {
             var result = new List<Point3D>();
+
             for (double i = 0; i < 360; i += angleStep)
             {
-                var x = Math.Cos(i / (180 / Math.PI));
-                var y = Math.Sin(i / (180 / Math.PI)) * -1;
+
+                var x = Math.Round( Math.Cos(i / (180 / Math.PI)), 4);
+                var y = Math.Round(Math.Sin(i / (180 / Math.PI)), 4);
                 result.Add(new Point3D(x * radius, y * radius, Z));
             }
 
@@ -180,8 +184,8 @@ namespace CrossSection.Models
             var result = new List<Point3D>();
             for (double i = 0; i < 360; i += angleStep)
             {
-                var x = Math.Cos(i / (180 / Math.PI));
-                var z = Math.Sin(i / (180 / Math.PI));
+                var x = Math.Round(Math.Cos(i / (180 / Math.PI)), 4);
+                var z = Math.Round(Math.Sin(i / (180 / Math.PI)), 4);
                 result.Add(new Point3D(x * radius, Y, z * radius));
             }
 
@@ -206,8 +210,8 @@ namespace CrossSection.Models
             var northPoleIndex = mainCircle.Count / 4;
             result.Add(new Point3D()
             {
-                X = mainCircle[northPoleIndex].X,
-                Y = mainCircle[northPoleIndex].Y,
+                X = mainCircle[northPoleIndex ].X,
+                Y = mainCircle[northPoleIndex ].Y,
                 Z = mainCircle[northPoleIndex].Z
             });
 
@@ -277,9 +281,12 @@ namespace CrossSection.Models
                 }
 
                 result.Add(I);
-                result.Add(II);
                 result.Add(III);
+                result.Add(II);
             }
+
+            // Скорректируем количество попреречных колец в соответствии со списком вершин.
+            CrossCircleCount = (Positions.Count - 2) / MainCirclePointCount;
 
             // Проходим по первым точкам поперечных окружностей от первой точки самой северной окружности
             // по первую точку предпоследней поперечной окружности(точки последней окружности будут соеденины
@@ -299,8 +306,8 @@ namespace CrossSection.Models
                     }
 
                     result.Add(I);
-                    result.Add(II);
                     result.Add(III);
+                    result.Add(II);
                 }
 
                 for (int j = i; j < i + MainCirclePointCount; j++)
@@ -316,8 +323,8 @@ namespace CrossSection.Models
                     }
 
                     result.Add(I);
-                    result.Add(II);
                     result.Add(III);
+                    result.Add(II);
                 }
             }
 
@@ -337,8 +344,8 @@ namespace CrossSection.Models
                 }
 
                 result.Add(I);
-                result.Add(II);
                 result.Add(III);
+                result.Add(II);
             }
 
             return result;
@@ -361,6 +368,219 @@ namespace CrossSection.Models
                     TriangleIndices = SphereTriangle();
                 }
             }
+        }
+
+        /// <summary>
+        /// Реализация поперечного сечения сферы двумя поперечными плоскостями.
+        /// </summary>
+        /// <param name="UpY"></param>
+        /// <param name="DownY"></param>
+        /// <returns></returns>
+        public IGeometry CrossSection(double UpY, double DownY)
+        {
+            IGeometry result = new SphereGeometry();
+
+            if(UpY == 0 && DownY == 0)
+            {
+                result.Positions = null;
+                result.TriangleIndices = null;
+                return result;
+            }
+
+            result.BuildGeometry(new object[] { (double?)AngleStep, (double?)Radius });
+
+            // 1. Определить не совпадает ли верхняя и нижняя плоскости с поперечным кольцом сферы по оси Y.
+            // если совпадает, то это кольцо и есть поперечное сечение, если нет, то нужно добавить кольцо в
+            // геометрию.
+
+            // Новый набор вершин.
+            var crossSphere = new Point3DCollection();
+
+            // Добавляем первой вершину северного полюса
+            // с модификацией координаты Y.
+            crossSphere.Add(new Point3D()
+            {
+                X = result.Positions[0].X,
+                Y = UpY,
+                Z = result.Positions[0].Z
+            });
+
+            // Условие сечения верхнего полушария.
+            if (UpY < Radius)
+            {
+                if (UpY > 0)
+                {
+                    //Проверить не совпадает ли плоскость сечения с попречной окружностью
+                    //в составе сферы исключая экватор.
+                    var startPointUpCrossCircle = result.Positions.Where(c => c.Y == UpY);
+
+                    // совпадает - с этого кольца начинаем строить усечённую
+                    // сферу первой точкой северный полюс с корректировкой
+                    // координаты Y.
+                    var testCount = startPointUpCrossCircle.Count();
+
+                    if (testCount > 0)
+                    {
+                        if (testCount == MainCirclePointCount)
+                        {
+                            var firstElement = result.Positions.First(c => c.Y == UpY);
+                            var lastElement = result.Positions.Last(c => c.Y == 0);
+
+                            for (var i = result.Positions.IndexOf(firstElement); i < result.Positions.IndexOf(lastElement) + 1; i++)
+                            {
+                                crossSphere.Add(new Point3D()
+                                {
+                                    X = result.Positions[i].X,
+                                    Y = result.Positions[i].Y,
+                                    Z = result.Positions[i].Z
+                                });
+                            }
+                        }
+                        // Построена усечённая сфера до экватора включительно.
+                    }
+                    else
+                    {
+                        // нет совпадений, значит строим поперечную окружность с нужным шагом и радиусом,
+                        // эта окружность будет первой после северного полюса после неё выбрать окружность
+                        // с 0 < Y < UpY
+                        //var sinus = Radius / UpY;
+                        var sinus = UpY / Radius;
+                        var crossRadius = Math.Sqrt(1 - sinus * sinus) * Radius;
+                        var crossCircle = GetPointsOnCircleXZ(AngleStep, crossRadius, UpY);
+
+                        // Добавляем окружность поперечного сечения.
+                        foreach(var point in crossCircle)
+                        {
+                            crossSphere.Add(new Point3D()
+                            {
+                                X = point.X,
+                                Y = point.Y,
+                                Z = point.Z
+                            });
+                        }
+
+                        // Находим все точки от первой Y < UpY до последней Y == 0.
+                        var firstElement = result.Positions.First(c => c.Y < UpY);
+                        var lastElement = result.Positions.Last(c => c.Y == 0);
+
+                        for (var i = result.Positions.IndexOf(firstElement); i < result.Positions.IndexOf(lastElement) + 1; i++)
+                        {
+                            crossSphere.Add(new Point3D()
+                            {
+                                X = result.Positions[i].X,
+                                Y = result.Positions[i].Y,
+                                Z = result.Positions[i].Z
+                            });
+                        }
+                        // Построена усечённая сфера до экватора включительно.
+                    }
+                }
+                else if(UpY == 0)
+                {
+                    // Находим все точки от первой Y == 0 до последней Y == 0.
+                    var firstElement = result.Positions.First(c => c.Y == 0);
+                    var lastElement = result.Positions.Last(c => c.Y == 0);
+
+                    for (var i = result.Positions.IndexOf(firstElement); i < result.Positions.IndexOf(lastElement) + 1; i++)
+                    {
+                        crossSphere.Add(new Point3D()
+                        {
+                            X = result.Positions[i].X,
+                            Y = result.Positions[i].Y,
+                            Z = result.Positions[i].Z
+                        });
+                    }
+                    // Построена усечённая сфера до экватора включительно.
+                }
+            }
+
+            // Условие сечения нижнего полушария.
+            if (DownY > -Radius)
+            {
+                if (DownY < 0)
+                {
+                    //Проверить не совпадает ли плоскость сечения с попречной окружностью
+                    //в составе сферы исключая экватор.
+                    var startPointDownCrossCircle = result.Positions.Where(c => c.Y == DownY);
+                    var testCount = startPointDownCrossCircle.Count();
+
+                    if (testCount > 0)
+                    {
+                        // Совпадает - это кольцо завершающее, после него только южный полюс.
+                        if (testCount == MainCirclePointCount)
+                        {
+                            var firstElement = result.Positions.First(c => c.Y < 0);
+                            var lastElement = result.Positions.Last(c => c.Y == DownY);
+
+                            for(var i = result.Positions.IndexOf(firstElement); i < result.Positions.IndexOf(lastElement) + 1; i++)
+                            {
+                                crossSphere.Add(new Point3D()
+                                {
+                                    X = result.Positions[i].X,
+                                    Y = result.Positions[i].Y,
+                                    Z = result.Positions[i].Z
+                                });
+                            }
+                        }
+                        // Построена усечённая сфера от экватора до кольца нижнего сечения исключая южный полюс.
+                    }
+                    else
+                    {
+                        // Не совпадает - нужно добавить кольцо поперечного сечения, но
+                        // только после добавления колец от экватоа(исключая экватор) до
+                        // кольца с Y > DownY.
+
+                        // Добавление колец от экватора(исключая экватор) до
+                        // кольца с Y > DownY
+                        // Находим все точки от первой Y < 0 до последней Y < 0.
+                        var firstElement = result.Positions.First(c => c.Y < 0);
+                        var lastElement = result.Positions.Last(c => c.Y > DownY);
+
+                        for (var i = result.Positions.IndexOf(firstElement); i < result.Positions.IndexOf(lastElement) + 1; i++)
+                        {
+                            crossSphere.Add(new Point3D()
+                            {
+                                X = result.Positions[i].X,
+                                Y = result.Positions[i].Y,
+                                Z = result.Positions[i].Z
+                            });
+                        }
+
+                        // Добавить кольцо поперечного сечения
+                        var sinus = DownY / Radius;
+                        var crossRadius = Math.Sqrt(1 - sinus * sinus) * Radius;
+                        var crossCircle = GetPointsOnCircleXZ(AngleStep, crossRadius, DownY);
+
+                        // Добавляем окружность поперечного сечения.
+                        foreach (var point in crossCircle)
+                        {
+                            crossSphere.Add(new Point3D()
+                            {
+                                X = point.X,
+                                Y = point.Y,
+                                Z = point.Z
+                            });
+                        }
+                        // Построена усечённая сфера от экватора до кольца нижнего сечения исключая южный полюс.
+                    }
+                }
+            }
+
+            // Добавляем последней вершину южного полюса
+            // с модификацией координаты Y.
+            crossSphere.Add(new Point3D()
+            {
+                X = result.Positions[result.Positions.Count - 1].X,
+                Y = DownY,
+                Z = result.Positions[result.Positions.Count - 1].Z
+            });
+
+            Positions = crossSphere;
+            TriangleIndices = SphereTriangle();
+            result.Positions = Positions;
+            result.TriangleIndices = TriangleIndices;
+
+            return result;
         }
 
         #endregion Методы.

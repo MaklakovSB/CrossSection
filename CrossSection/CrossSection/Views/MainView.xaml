@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="MainView" 
         Height="450" 
-        Width="1240">
+        Width="1318">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -32,6 +32,7 @@
                 <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="80"/>
                 <ColumnDefinition Width="80"/>
                 <ColumnDefinition Width="2"/>
             </Grid.ColumnDefinitions>
@@ -173,9 +174,14 @@
                                                    UpdateSourceTrigger=PropertyChanged}"/>
             </DockPanel>
 
-
-
             <Button Grid.Column="6"
+                    Grid.Row="0"
+                    Grid.RowSpan="3"
+                    Margin="1"
+                    Content="Отсечь"
+                    Command="{Binding CrossSectionCurrentGeometryCommand}"/>
+
+            <Button Grid.Column="7"
                     Grid.Row="0"
                     Grid.RowSpan="3"
                     Margin="1"

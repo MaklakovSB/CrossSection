@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Delegates\DelegateCommand.cs" />
     <Compile Include="Delegates\DelegateParametrizedCommand.cs" />
+    <Compile Include="Interfaces\ICrossSection.cs" />
     <Compile Include="Interfaces\IGeometry.cs" />
     <Compile Include="Interfaces\IRaiseCanExecuteChanged.cs" />
     <Compile Include="Interfaces\IView.cs" />

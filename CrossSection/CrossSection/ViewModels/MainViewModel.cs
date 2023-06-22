@@ -1,6 +1,7 @@
 ﻿using CrossSection.Delegates;
 using CrossSection.Interfaces;
 using CrossSection.Models;
+using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 
@@ -155,6 +156,10 @@ namespace CrossSection.ViewModels
             get => _planeUpCoordinateY;
             set
             {
+                // Принимает только положительные значения.
+                if (value < 0)
+                    value = 0;
+
                 _planeUpCoordinateY = value;
                 OnPropertyChanged(nameof(PlaneUpCoordinateY));
                 PlaneUp.Positions = null;
@@ -171,6 +176,10 @@ namespace CrossSection.ViewModels
             get => _planeDownCoordinateY;
             set
             {
+                // Принимает только отрицательные значения.
+                if (value > 0) 
+                    value = 0;
+
                 _planeDownCoordinateY = value;
                 OnPropertyChanged(nameof(PlaneDownCoordinateY));
                 PlaneDown.Positions = null;
@@ -240,10 +249,8 @@ namespace CrossSection.ViewModels
         }
         private ICommand _getCubeCurrentGeometryCommand;
 
-        //GetPlaneUpGeometryCommand
-
         /// <summary>
-        /// Команда .
+        /// Команда отображения верхней плоскости сечения.
         /// </summary>
         public ICommand GetPlaneUpGeometryCommand
         {
@@ -260,7 +267,7 @@ namespace CrossSection.ViewModels
         private ICommand _getPlaneUpGeometryCommand;
 
         /// <summary>
-        /// Команда .
+        /// Команда отображения нижней плоскости сечения.
         /// </summary>
         public ICommand GetPlaneDownGeometryCommand
         {
@@ -276,6 +283,25 @@ namespace CrossSection.ViewModels
         }
         private ICommand _getPlaneDownGeometryCommand;
 
+        //CrossSectionCurrentGeometryCommand
+
+        /// <summary>
+        /// Команда отображения нижней плоскости сечения.
+        /// </summary>
+        public ICommand CrossSectionCurrentGeometryCommand
+        {
+            get
+            {
+                if (_crossSectionCurrentGeometryCommand == null)
+                {
+                    _crossSectionCurrentGeometryCommand = new DelegateCommand(CrossSectionCurrentGeometry);
+                }
+
+                return _crossSectionCurrentGeometryCommand;
+            }
+        }
+        private ICommand _crossSectionCurrentGeometryCommand;
+
         #endregion Свойства.
 
         /// <summary>
@@ -283,11 +309,6 @@ namespace CrossSection.ViewModels
         /// </summary>
         public MainViewModel()
         {
-            //var g = SphereGeometry.StepAngle.Source.StepAngleDictonary.ContainsKey(2.0);
-
-            //PlaneUp.BuildGeometry(new object[] { (double?)20, (double?)3.7 });
-
-            //PlaneDown.BuildGeometry(new object[] { (double?)20, (double?)-2.7 });
         }
 
         #region Методы.
@@ -298,6 +319,10 @@ namespace CrossSection.ViewModels
         private void ClearCurrentGeometry()
         {
             CurrentGeometry = null;
+            PlaneUp.Positions = null;
+            PlaneUp.TriangleIndices = null;
+            PlaneDown.Positions = null;
+            PlaneDown.TriangleIndices = null;
         }
 
         /// <summary>
@@ -305,8 +330,16 @@ namespace CrossSection.ViewModels
         /// </summary>
         private void GetSphereCurrentGeometry()
         {
-            _sphereGeometry.BuildGeometry(new object[] { (double?)SphereAngleStep, (double?)SphereRadius });
+            SphereBuildGeometry();
             CurrentGeometry = _sphereGeometry;
+        }
+
+        /// <summary>
+        /// Построить геометрию сферы.
+        /// </summary>
+        private void SphereBuildGeometry()
+        {
+            _sphereGeometry.BuildGeometry(new object[] { (double?)SphereAngleStep, (double?)SphereRadius });
         }
 
         /// <summary>
@@ -314,18 +347,72 @@ namespace CrossSection.ViewModels
         /// </summary>
         private void GetCubeCurrentGeometry()
         {
-            _cubeGeometry.BuildGeometry(new object[] { (double?)CubeSide, (double?)CubeChamferPrecent });
+            CubeBuildGeometry();
             CurrentGeometry = _cubeGeometry;
         }
 
+        /// <summary>
+        /// Построить геометрию куба.
+        /// </summary>
+        private void CubeBuildGeometry()
+        {
+            _cubeGeometry.BuildGeometry(new object[] { (double?)CubeSide, (double?)CubeChamferPrecent });
+        }
+
+        /// <summary>
+        /// Метод отображения верхней плоскости сечения.
+        /// </summary>
         private void GetPlaneUpGeometry()
         {
             PlaneUp.BuildGeometry(new object[] { (double?)PlaneUpSide, (double?)PlaneUpCoordinateY });
         }
 
+        /// <summary>
+        /// Метод отображения нижней плоскости сечения.
+        /// </summary>
         private void GetPlaneDownGeometry()
         {
             PlaneDown.BuildGeometry(new object[] { (double?)PlaneDownSide, (double?)PlaneDownCoordinateY });
+        }
+
+        /// <summary>
+        /// Поперечное отсечение фигуры двуся плоскостями.
+        /// </summary>
+        private void CrossSectionCurrentGeometry()
+        {
+            // Применим все установленные в пользовательском интерфейсе параметры для всех объектов
+            // без изменения текущего выбора.
+            // И выведем исходные условия визуально в 3D-вьюпорт перед операцией сечения.
+            SphereBuildGeometry();
+            CubeBuildGeometry();
+            GetPlaneUpGeometry();
+            GetPlaneDownGeometry();
+
+
+            if (CurrentGeometry != null)
+            {
+                var currentGeometry = CurrentGeometry as ICrossSection;
+
+                if(currentGeometry != null)
+                {
+                    var cs = currentGeometry.CrossSection(PlaneUpCoordinateY, PlaneDownCoordinateY);
+                    CurrentGeometry.Positions = cs.Positions;
+                    CurrentGeometry.TriangleIndices = cs.TriangleIndices;
+
+                    PlaneUp.Positions = null;
+                    PlaneUp.TriangleIndices = null;
+                    PlaneDown.Positions = null;
+                    PlaneDown.TriangleIndices = null;
+                }
+                else
+                {
+                    throw new Exception("Текущий объект не поддеоживает поперечного сечения.");
+                }
+            }
+            else
+            {
+                throw new Exception("Текущий объект не выбран.");
+            }
         }
 
         #endregion Методы.
