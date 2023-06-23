@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
@@ -21,29 +17,39 @@ namespace CrossSection.Models
         #region Методы.
 
         /// <summary>
-        /// 
+        /// Получит вершины геометрии плоскости.
         /// </summary>
-        /// <param name="sideSize"></param>
-        /// <param name="chamferPrecent"></param>
+        /// <param name="args">double? sideSize, double? coordinateY</param>
         /// <returns></returns>
-        private Point3DCollection GetPoints(double sideSize, double coordinateY)
+        protected override Point3DCollection GetPointsGeometry(object[] args)
         {
             var result = new Point3DCollection();
-            var coordinate = sideSize / 2;
 
-            for (var i = 1; i > -2 ;i -= 2)
+            if (args.Length == 2)
             {
-                for (var j = 36; j < 180; j += 36)
-                {
-                    var xMul = Math.Sin(j) * 10 / Math.Abs(Math.Sin(j) * 10) * -1;
-                    var zMul = Math.Cos(j) * 10 / Math.Abs(Math.Cos(j) * 10);
 
-                    result.Add(new Point3D()
+                double? sideSize = args[0] as double?;
+                double? coordinateY = args[1] as double?;
+
+                if (sideSize != null && coordinateY != null)
+                {
+                    var coordinate = sideSize / 2;
+
+                    for (var i = 1; i > -2; i -= 2)
                     {
-                        X = coordinate * xMul,
-                        Y = coordinateY + (0.025 * i),
-                        Z = coordinate * zMul
-                    });
+                        for (var j = 36; j < 180; j += 36)
+                        {
+                            var xMul = Math.Sin(j) * 10 / Math.Abs(Math.Sin(j) * 10) * -1;
+                            var zMul = Math.Cos(j) * 10 / Math.Abs(Math.Cos(j) * 10);
+
+                            result.Add(new Point3D()
+                            {
+                                X = (double)coordinate * xMul,
+                                Y = (double)coordinateY + (0.025 * i),
+                                Z = (double)coordinate * zMul
+                            });
+                        }
+                    }
                 }
             }
 
@@ -51,10 +57,10 @@ namespace CrossSection.Models
         }
 
         /// <summary>
-        /// 
+        /// Триангуляция вершин плоскости.
         /// </summary>
         /// <returns></returns>
-        private Int32Collection Triangle()
+        protected override Int32Collection Triangle()
         {
             var result = new Int32Collection();
 
@@ -80,7 +86,7 @@ namespace CrossSection.Models
         /// <summary>
         /// Построить геометрию плоскости.
         /// </summary>
-        /// <param name="args"></param>
+        /// <param name="args">double? sideSize, double? coordinateY</param>
         public override void BuildGeometry(object[] args)
         {
             if (args.Length == 2)
@@ -90,7 +96,7 @@ namespace CrossSection.Models
 
                 if (sideSize != null && coordinateY != null)
                 {
-                    Positions = GetPoints((double)sideSize, (double)coordinateY);
+                    Positions = GetPointsGeometry(new object[] { sideSize, coordinateY });
                     TriangleIndices = Triangle();
                 }
             }

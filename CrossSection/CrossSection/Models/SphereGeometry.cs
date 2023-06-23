@@ -11,7 +11,7 @@ namespace CrossSection.Models
     // Расчитывает точки лежащие на сфере и триангулирует их против часовой стрелки - наружу.
     // Расчёт точек производится по входным параметрам - шаг угла и радиус. Для правильноого
     // расчёта важно чтобы значение угла шага делило число 90 нацело без остатка. Подходящие
-    // значения шага угла: 1, 2, 3, 5, 6, 9, 10, 15, 18, (30, 45). При значениях шага 30 и 45
+    // значения шага угла: 1, 2, 3, 5, 6, 9, 10, 15, 18, (30, 45, 90). При значениях шага 30, 45 и 90
     // получаемая геометрия уже не является сферой т.е выходит за рамки задачи построения сферы.
     // Все расчёты ведутся исходя из следующих полжений: 0 градусов - справа и соответствует
     // восточному направлению и положительному направлению оси X; ось Y положительно направлена
@@ -29,9 +29,10 @@ namespace CrossSection.Models
     // коллекции, что важно для триангуляции, таким образом, точка северного полюса всегда имеет индекс 0,
     // а точка южного полюса имеет последний допустимый индекс коллекции. Между этими двумя элементами
     // коллекции располагаются точки поперечных окружностей начиная от самой "севарной" к самой "южной"
-    // точки этих окружностей расположены в порядке их расчёта - от нуля нрадусов против часовой стрелки.
+    // точки этих окружностей расположены в порядке их расчёта - от нуля градусов против часовой стрелки.
     public class SphereGeometry: Geometry, ICrossSection
     {
+        // Класс предоставляет допустимые угловые шаги расчёта сферы.
         public sealed class StepAngle
         {
             public static StepAngle Source
@@ -63,7 +64,6 @@ namespace CrossSection.Models
             }
 
             static StepAngle() { }
-
         }
 
         #region Свойства.
@@ -193,67 +193,77 @@ namespace CrossSection.Models
         }
 
         /// <summary>
-        /// Расчёт точек принадлежащих сфере.
+        /// Расчёт точек принадлежащих сфере
         /// </summary>
-        /// <param name="angleStep"></param>
-        /// <param name="radius"></param>
+        /// <param name="args">angleStep, radius</param>
         /// <returns>Возвращает список точек принадлежащих сфере с заданным угловым шагом и радиусом.</returns>
-        private Point3DCollection GetPointsOnSphere(double angleStep, double radius)
+        protected override Point3DCollection GetPointsGeometry(object[] args)
         {
             var result = new Point3DCollection();
-            var mainCircle = GetPointsOnCircleXY(angleStep, radius);
-            MainCirclePointCount = mainCircle.Count;
-            AngleStep = angleStep;
-            Radius = radius;
 
-            // Получаем северный полюс сферы и заносим в результирующий список.
-            var northPoleIndex = mainCircle.Count / 4;
-            result.Add(new Point3D()
+            if (args.Length == 2)
             {
-                X = mainCircle[northPoleIndex ].X,
-                Y = mainCircle[northPoleIndex ].Y,
-                Z = mainCircle[northPoleIndex].Z
-            });
+                double? angleStep = args[0] as double?;
+                double? radius = args[1] as double?;
 
-            // Получаем стартовый индекс точки на основной окружности.
-            var startPointIndex = northPoleIndex + 1;
-
-            // Получаем количество итераций чтобы пройти по точкам основной
-            // окружности между северной и южной точкой.
-            var iteration = (mainCircle.Count / 2) - 1;
-            CrossCircleCount = iteration;
-
-            // Проходим по точкам от северной до южной и генерируем окружности поперечного сечения.
-            for (var i = startPointIndex; i < startPointIndex + iteration; i++)
-            {
-                // Радиус поперечного сечения.
-                var crossRadius = mainCircle[i].X * -1;
-
-                // Список точек поперечной окружности.
-                var crossCircle = GetPointsOnCircleXZ(angleStep, crossRadius, mainCircle[i].Y);
-
-                // Заносим точки поперечной окружности в результирующий список.
-                foreach (var point in crossCircle)
+                if (angleStep != null && radius != null)
                 {
+                    var mainCircle = GetPointsOnCircleXY((double)angleStep, (double)radius);
+                    MainCirclePointCount = mainCircle.Count;
+                    AngleStep = (double)angleStep;
+                    Radius = (double)radius;
+
+                    // Получаем северный полюс сферы и заносим в результирующий список.
+                    var northPoleIndex = mainCircle.Count / 4;
                     result.Add(new Point3D()
                     {
-                        X = point.X,
-                        Y = point.Y,
-                        Z = point.Z
+                        X = mainCircle[northPoleIndex].X,
+                        Y = mainCircle[northPoleIndex].Y,
+                        Z = mainCircle[northPoleIndex].Z
                     });
+
+                    // Получаем стартовый индекс точки на основной окружности.
+                    var startPointIndex = northPoleIndex + 1;
+
+                    // Получаем количество итераций чтобы пройти по точкам основной
+                    // окружности между северной и южной точкой.
+                    var iteration = (mainCircle.Count / 2) - 1;
+                    CrossCircleCount = iteration;
+
+                    // Проходим по точкам от северной до южной и генерируем окружности поперечного сечения.
+                    for (var i = startPointIndex; i < startPointIndex + iteration; i++)
+                    {
+                        // Радиус поперечного сечения.
+                        var crossRadius = mainCircle[i].X * -1;
+
+                        // Список точек поперечной окружности.
+                        var crossCircle = GetPointsOnCircleXZ((double)angleStep, crossRadius, mainCircle[i].Y);
+
+                        // Заносим точки поперечной окружности в результирующий список.
+                        foreach (var point in crossCircle)
+                        {
+                            result.Add(new Point3D()
+                            {
+                                X = point.X,
+                                Y = point.Y,
+                                Z = point.Z
+                            });
+                        }
+                    }
+
+                    // Получаем южный полюс сферы и заносим в результирующий список.
+                    var southPoleIndex = northPoleIndex * 3;
+                    result.Add(new Point3D()
+                    {
+                        X = mainCircle[southPoleIndex].X,
+                        Y = mainCircle[southPoleIndex].Y,
+                        Z = mainCircle[southPoleIndex].Z
+                    });
+
+                    PositionsCount = result.Count;
                 }
             }
 
-            // Получаем южный полюс сферы и заносим в результирующий список.
-            var southPoleIndex = northPoleIndex * 3;
-            result.Add(new Point3D()
-            {
-                X = mainCircle[southPoleIndex].X,
-                Y = mainCircle[southPoleIndex].Y,
-                Z = mainCircle[southPoleIndex].Z
-            });
-
-            PositionsCount = result.Count;
             return result;
         }
 
@@ -261,7 +271,7 @@ namespace CrossSection.Models
         /// Триангуляция вершин сферы.
         /// </summary>
         /// <returns></returns>
-        private Int32Collection SphereTriangle()
+        protected override Int32Collection Triangle()
         {
             var result = new Int32Collection();
             Int32 I;
@@ -364,8 +374,8 @@ namespace CrossSection.Models
 
                 if (angleStep != null && radius != null)
                 {
-                    Positions = GetPointsOnSphere((double)angleStep, (double)radius);
-                    TriangleIndices = SphereTriangle();
+                    Positions = GetPointsGeometry(new object[] { angleStep, radius });
+                    TriangleIndices = Triangle();
                 }
             }
         }
@@ -615,7 +625,7 @@ namespace CrossSection.Models
             });
 
             Positions = crossSphere;
-            TriangleIndices = SphereTriangle();
+            TriangleIndices = Triangle();
             result.Positions = Positions;
             result.TriangleIndices = TriangleIndices;
 

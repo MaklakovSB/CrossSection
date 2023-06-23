@@ -9,7 +9,7 @@ namespace CrossSection.Interfaces
     public interface ICrossSection
     {
         /// <summary>
-        /// 
+        /// Метод поперечного сечения.
         /// </summary>
         /// <param name="UpY"></param>
         /// <param name="DownY"></param>

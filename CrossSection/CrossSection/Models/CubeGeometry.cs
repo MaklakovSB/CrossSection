@@ -65,57 +65,65 @@ namespace CrossSection.Models
         /// <summary>
         /// Расчёт точек куба.
         /// </summary>
-        /// <param name="sideSize">Размер стороны куба.</param>
-        /// <param name="chamferPrecent">Процент от величины стороны куба для расчёта фаски.</param>
+        /// <param name="args">sideSize - размер стороны куба, chamferPrecent - процент от величины стороны куба для расчёта фаски.</param>
         /// <returns></returns>
-        private Point3DCollection GetPointsOnCube(double sideSize, double chamferPrecent = 0)
+        protected override Point3DCollection GetPointsGeometry(object[] args)
         {
             var result = new Point3DCollection();
 
-            CubeSide = sideSize;
-            CubeChamferPrecent = chamferPrecent;
-            СubeChamfer = CubeSide / 100 * CubeChamferPrecent;
-
-            var coordinate = sideSize / 2;
-
-            for (var yMul = 1; yMul > -2; yMul -= 2)
+            if (args.Length == 2)
             {
-                for (var j = 36; j < 180; j += 36)
+                double? sideSize = args[0] as double?;
+                double? chamferPrecent = args[1] as double?;
+
+                if (sideSize != null && chamferPrecent != null)
                 {
-                    var xMul = Math.Sin(j) * 10 / Math.Abs(Math.Sin(j) * 10) * -1;
-                    var zMul = Math.Cos(j) * 10 / Math.Abs(Math.Cos(j) * 10);
+                    CubeSide = (double)sideSize;
+                    CubeChamferPrecent = (double)chamferPrecent;
+                    СubeChamfer = CubeSide / 100 * CubeChamferPrecent;
 
-                    if (CubeChamferPrecent == 0)
+                    var coordinate = sideSize / 2;
+
+                    for (var yMul = 1; yMul > -2; yMul -= 2)
                     {
-                        result.Add(new Point3D()
+                        for (var j = 36; j < 180; j += 36)
                         {
-                            X = coordinate * xMul,
-                            Y = coordinate * yMul,
-                            Z = coordinate * zMul
-                        });
-                    }
-                    else
-                    {
-                        result.Add(new Point3D()
-                        {
-                            X = coordinate * xMul,
-                            Y = (coordinate - (СubeChamfer / 2)) * yMul,
-                            Z = (coordinate - (СubeChamfer / 2)) * zMul
-                        });
+                            var xMul = Math.Sin(j) * 10 / Math.Abs(Math.Sin(j) * 10) * -1;
+                            var zMul = Math.Cos(j) * 10 / Math.Abs(Math.Cos(j) * 10);
 
-                        result.Add(new Point3D()
-                        {
-                            X = (coordinate - (СubeChamfer / 2)) * xMul,
-                            Y = coordinate * yMul,
-                            Z = (coordinate - (СubeChamfer / 2)) * zMul
-                        });
+                            if (CubeChamferPrecent == 0)
+                            {
+                                result.Add(new Point3D()
+                                {
+                                    X = (double)coordinate * xMul,
+                                    Y = (double)coordinate * yMul,
+                                    Z = (double)coordinate * zMul
+                                });
+                            }
+                            else
+                            {
+                                result.Add(new Point3D()
+                                {
+                                    X = (double)coordinate * xMul,
+                                    Y = (double)(coordinate - (СubeChamfer / 2)) * yMul,
+                                    Z = (double)(coordinate - (СubeChamfer / 2)) * zMul
+                                });
 
-                        result.Add(new Point3D()
-                        {
-                            X = (coordinate - (СubeChamfer / 2)) * xMul,
-                            Y = (coordinate - (СubeChamfer / 2)) * yMul,
-                            Z = coordinate * zMul
-                        });
+                                result.Add(new Point3D()
+                                {
+                                    X = (double)(coordinate - (СubeChamfer / 2)) * xMul,
+                                    Y = (double)coordinate * yMul,
+                                    Z = (double)(coordinate - (СubeChamfer / 2)) * zMul
+                                });
+
+                                result.Add(new Point3D()
+                                {
+                                    X = (double)(coordinate - (СubeChamfer / 2)) * xMul,
+                                    Y = (double)(coordinate - (СubeChamfer / 2)) * yMul,
+                                    Z = (double)coordinate * zMul
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -127,7 +135,7 @@ namespace CrossSection.Models
         /// Метод триангуляции куба с фаской и без.
         /// </summary>
         /// <returns></returns>
-        private Int32Collection CubeTriangle()
+        protected override Int32Collection Triangle()
         {
             int I = 0;
             int II = 0;
@@ -390,8 +398,8 @@ namespace CrossSection.Models
 
                 if (sideSize != null && chamferPrecent != null)
                 {
-                    Positions = GetPointsOnCube((double)sideSize, (double)chamferPrecent);
-                    TriangleIndices = CubeTriangle();
+                    Positions = GetPointsGeometry(new object[] { sideSize, chamferPrecent });
+                    TriangleIndices = Triangle();
                 }
             }
         }

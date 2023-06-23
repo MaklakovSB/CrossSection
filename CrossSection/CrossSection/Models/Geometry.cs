@@ -40,6 +40,19 @@ namespace CrossSection.Models
         /// </summary>
         public abstract void BuildGeometry(object[] args);
 
+        /// <summary>
+        /// Получить вершины геометрии.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected abstract Point3DCollection GetPointsGeometry(object[] args);
+
+        /// <summary>
+        /// Триангуляция вершин геометрии.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract Int32Collection Triangle();
+
         #region Имплементация INotifyPropertyChanged.
 
         public event PropertyChangedEventHandler PropertyChanged;
