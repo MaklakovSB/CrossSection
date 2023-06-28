@@ -9,6 +9,11 @@ namespace CrossSection.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
+        /// <summary>
+        /// Значение Y для плоскости не пересекающейся текущей геометрией.
+        /// </summary>
+        private const double OUT_OF_GEOMETRY_Y = 1000;
+
         #region Поля.
 
         private CubeGeometry _cubeGeometry = new CubeGeometry();
@@ -26,6 +31,10 @@ namespace CrossSection.ViewModels
             get => _cubeSide;
             set
             {
+                // Принимает только положительные не нулевые значения.
+                if (value < 0)
+                    value = 1;
+
                 _cubeSide = value;
                 OnPropertyChanged(nameof(CubeSide));
             }
@@ -40,6 +49,10 @@ namespace CrossSection.ViewModels
             get => _cubeChamferPrecent;
             set
             {
+                // Принимает только положительные значения.
+                if (value < 0)
+                    value = 0;
+
                 _cubeChamferPrecent = value;
                 OnPropertyChanged(nameof(CubeChamferPrecent));
             }
@@ -68,6 +81,10 @@ namespace CrossSection.ViewModels
             get => _sphereRadius;
             set
             {
+                // Принимает только положительные не нулевые значения.
+                if (value < 0)
+                    value = 1;
+
                 _sphereRadius = value;
                 OnPropertyChanged(nameof(SphereRadius));
             }
@@ -84,6 +101,9 @@ namespace CrossSection.ViewModels
             {
                 _currentGeometry = value;
                 OnPropertyChanged(nameof(CurrentGeometry));
+
+                IsVisiblePlaneUp = false;
+                IsVisiblePlaneDown = false;
             }
         }
         private IGeometry _currentGeometry;
@@ -124,10 +144,16 @@ namespace CrossSection.ViewModels
             get => _planeUpSide;
             set
             {
+                // Принимает только положительные не нулевые значения.
+                if (value < 0)
+                    value = 1;
+
                 _planeUpSide = value;
                 OnPropertyChanged(nameof(PlaneUpSide));
+
                 PlaneUp.Positions = null;
                 PlaneUp.TriangleIndices = null;
+                IsVisiblePlaneUp = false;
             }
         }
         private double _planeUpSide = 20;
@@ -140,10 +166,16 @@ namespace CrossSection.ViewModels
             get => _planeDownSide;
             set
             {
+                // Принимает только положительные не нулевые значения.
+                if (value < 0)
+                    value = 1;
+
                 _planeDownSide = value;
                 OnPropertyChanged(nameof(PlaneDownSide));
+
                 PlaneDown.Positions = null;
                 PlaneDown.TriangleIndices = null;
+                IsVisiblePlaneDown = false;
             }
         }
         private double _planeDownSide = 20;
@@ -162,8 +194,10 @@ namespace CrossSection.ViewModels
 
                 _planeUpCoordinateY = value;
                 OnPropertyChanged(nameof(PlaneUpCoordinateY));
+
                 PlaneUp.Positions = null;
                 PlaneUp.TriangleIndices = null;
+                IsVisiblePlaneUp = false;
             }
         }
         private double _planeUpCoordinateY = 5;
@@ -176,18 +210,47 @@ namespace CrossSection.ViewModels
             get => _planeDownCoordinateY;
             set
             {
-                // Принимает только отрицательные значения.
+                // Принимает только отрицательные значения либо ноль.
                 if (value > 0) 
                     value = 0;
 
                 _planeDownCoordinateY = value;
                 OnPropertyChanged(nameof(PlaneDownCoordinateY));
+
                 PlaneDown.Positions = null;
                 PlaneDown.TriangleIndices = null;
+                IsVisiblePlaneDown = false;
             }
         }
         private double _planeDownCoordinateY = -5;
 
+        /// <summary>
+        /// Признак видимости верхней плоскости сечения.
+        /// </summary>
+        public bool IsVisiblePlaneUp
+        {
+            get => _isVisiblePlaneUp;
+            set
+            {
+                _isVisiblePlaneUp = value;
+                OnPropertyChanged(nameof(IsVisiblePlaneUp));
+            }
+        }
+        private bool _isVisiblePlaneUp = false;
+
+        /// <summary>
+        /// Признак видимости нижней плоскости сечения.
+        /// </summary>
+        public bool IsVisiblePlaneDown
+        {
+            get => _isVisiblePlaneDown;
+            set
+            {
+                _isVisiblePlaneDown = value;
+                OnPropertyChanged(nameof(IsVisiblePlaneDown));
+            }
+        }
+        private bool _isVisiblePlaneDown = false;
 
         /// <summary>
         /// Допустимые значения шага угла для расчёта сферы.
@@ -283,8 +346,6 @@ namespace CrossSection.ViewModels
         }
         private ICommand _getPlaneDownGeometryCommand;
 
-        //CrossSectionCurrentGeometryCommand
-
         /// <summary>
         /// Команда отображения нижней плоскости сечения.
         /// </summary>
@@ -323,6 +384,8 @@ namespace CrossSection.ViewModels
             PlaneUp.TriangleIndices = null;
             PlaneDown.Positions = null;
             PlaneDown.TriangleIndices = null;
+            IsVisiblePlaneUp = false;
+            IsVisiblePlaneDown = false;
         }
 
         /// <summary>
@@ -365,6 +428,7 @@ namespace CrossSection.ViewModels
         private void GetPlaneUpGeometry()
         {
             PlaneUp.BuildGeometry(new object[] { (double?)PlaneUpSide, (double?)PlaneUpCoordinateY });
+            IsVisiblePlaneUp = true;
         }
 
         /// <summary>
@@ -373,20 +437,21 @@ namespace CrossSection.ViewModels
         private void GetPlaneDownGeometry()
         {
             PlaneDown.BuildGeometry(new object[] { (double?)PlaneDownSide, (double?)PlaneDownCoordinateY });
+            IsVisiblePlaneDown = true;
         }
 
         /// <summary>
-        /// Поперечное отсечение фигуры двуся плоскостями.
+        /// Поперечное отсечение фигуры двумя плоскостями.
         /// </summary>
         private void CrossSectionCurrentGeometry()
         {
             // Применим все установленные в пользовательском интерфейсе параметры для всех объектов
             // без изменения текущего выбора.
             // И выведем исходные условия визуально в 3D-вьюпорт перед операцией сечения.
-            SphereBuildGeometry();
-            CubeBuildGeometry();
-            GetPlaneUpGeometry();
-            GetPlaneDownGeometry();
+            //SphereBuildGeometry();
+            //CubeBuildGeometry();
+            //GetPlaneUpGeometry();
+            //GetPlaneDownGeometry();
 
 
             if (CurrentGeometry != null)
@@ -395,14 +460,29 @@ namespace CrossSection.ViewModels
 
                 if(currentGeometry != null)
                 {
-                    var cs = currentGeometry.CrossSection(PlaneUpCoordinateY, PlaneDownCoordinateY);
-                    CurrentGeometry.Positions = cs.Positions;
-                    CurrentGeometry.TriangleIndices = cs.TriangleIndices;
+                    if (IsVisiblePlaneUp || IsVisiblePlaneDown)
+                    {
+                        SphereBuildGeometry();
+                        CubeBuildGeometry();
 
-                    PlaneUp.Positions = null;
-                    PlaneUp.TriangleIndices = null;
-                    PlaneDown.Positions = null;
-                    PlaneDown.TriangleIndices = null;
+                        var planeUpCoordinateY = PlaneUpCoordinateY;
+                        var planeDownCoordinateY = PlaneDownCoordinateY;
+
+                        if (!IsVisiblePlaneUp)
+                            planeUpCoordinateY = OUT_OF_GEOMETRY_Y;
+
+                        if (!IsVisiblePlaneDown)
+                            planeDownCoordinateY = OUT_OF_GEOMETRY_Y * -1;
+
+                        var cs = currentGeometry.CrossSection(planeUpCoordinateY, planeDownCoordinateY);
+                        CurrentGeometry.Positions = cs.Positions;
+                        CurrentGeometry.TriangleIndices = cs.TriangleIndices;
+
+                        PlaneUp.Positions = null;
+                        PlaneUp.TriangleIndices = null;
+                        PlaneDown.Positions = null;
+                        PlaneDown.TriangleIndices = null;
+                    }
                 }
                 else
                 {

@@ -1,54 +1,82 @@
-﻿using System;
+﻿using CrossSection.Interfaces;
+using System;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
 namespace CrossSection.Models
 {
-    public class CubeGeometry : Geometry
+    /// <summary>
+    /// Класс - геометрия куба.
+    /// Расчитывает точки вершин куба по двум аргументам: SideSize - размер стороны куба;
+    /// ChamferPrecent - размер фаски как процент от размера куба.
+    /// Если размер фаски будет равен нулю, то количество вершин куба будет равняться восьми.
+    /// Если размер фаски будет отличен от нуля, то каждая из восьми вершин будет утроена и 
+    /// общее количество вершин будет равняться двадцати четырём. 
+    /// Вершины в коллекции Positions располагаются в порядке их расчёта - против часовой стрелки
+    /// - если наблюдение происходит вдоль убывания оси Y (сверху-вниз убывающая часть оси Z 
+    /// направлена вверх, растущая часть оси X направлена вправо на восток, что соответствует нулю градусов),
+    /// то сначала будут расчитаны верхние-ближние точки куба, а затем нижние-дальние. Первая вершина (или 
+    /// в случае с ненулевой фаской - набор из трёх вершин) будет находиться в верхней-правой четверти
+    /// где координата X - положительна, а Z - отрицательна. Вторая вершина или набор из трёх вершин при 
+    /// ненулевой фаске будет(ут) располагаться в левой-верхней четверти при отрицательных значениях
+    /// координат по осям X и Z и т.д. где первые четыре шага расчитываются с положительными значения 
+    /// координат по оси Y, а вторые четыре с отрицательными значениями координат по оси Y.
+    /// В случае с ненулевой фаской вместо одной вершины куба за одну итерацию расчитывается три вершины.
+    /// Например если сторона куба равна 10 и задана фаска 1 процент, то вместо первой вершины с координатами
+    /// XYZ = {5, 5, -5} будет добавлено три вершины со следующими координатами: 
+    /// {X = 5, Y = 5 со смещением на 0.5% в сторону нуля, Z = 5 со смещением на 0.5% в сторону нуля}, 
+    /// {X = 5 со смещением на 0.5% в сторону нуля, Y = 5, 5 со смещением на 0.5% в сторону нуля}, 
+    /// {X = 5 со смещением на 0.5% в сторону нуля, Y = 5 со смещением на 0.5% в сторону нуля, -5}.
+    /// Из этого следует, что порядок расположения восьми наборов из трёх вершин в коллекции Positions
+    /// взаимосвязано с координатами вершин куба таким образом, что в первой вершине набора коодинатой
+    /// без отклонения к нулю будет X, во торой - Y, в третей - Z. Таким образом становится известно
+    /// как найти каждую вершину и какой основной грани она принадлежит не анализируя значение координат вершин.
+    /// </summary>
+    public class CubeGeometry : Geometry, ICrossSection
     {
         #region Свойства.
 
         /// <summary>
         /// Величина стороны куба.
         /// </summary>
-        public double CubeSide
+        public double SideSize
         {
-            get => _cubeSide;
+            get => _sideSize;
             set
             {
-                _cubeSide = value;
-                OnPropertyChanged(nameof(CubeSide));
+                _sideSize = value;
+                OnPropertyChanged(nameof(SideSize));
             }
         }
-        private double _cubeSide = 0;
+        private double _sideSize = 0;
 
         /// <summary>
         /// Процент от размера куба для расчёта фаски.
         /// </summary>
-        public double CubeChamferPrecent
+        public double ChamferPrecent
         {
-            get => _cubeChamferPrecent;
+            get => _chamferPrecent;
             set
             {
-                _cubeChamferPrecent = value;
-                OnPropertyChanged(nameof(CubeChamferPrecent));
+                _chamferPrecent = value;
+                OnPropertyChanged(nameof(ChamferPrecent));
             }
         }
-        private double _cubeChamferPrecent = 0;
+        private double _chamferPrecent = 0;
 
         /// <summary>
         /// Величина фаски.
         /// </summary>
-        public double СubeChamfer
+        public double ChamferSize
         {
-            get => _cubeChamfer;
+            get => _chamferSize;
             set
             {
-                _cubeChamfer = value;
-                OnPropertyChanged(nameof(СubeChamfer));
+                _chamferSize = value;
+                OnPropertyChanged(nameof(ChamferSize));
             }
         }
-        private double _cubeChamfer = 0;
+        private double _chamferSize = 0;
 
         #endregion Свойства.
 
@@ -78,20 +106,20 @@ namespace CrossSection.Models
 
                 if (sideSize != null && chamferPrecent != null)
                 {
-                    CubeSide = (double)sideSize;
-                    CubeChamferPrecent = (double)chamferPrecent;
-                    СubeChamfer = CubeSide / 100 * CubeChamferPrecent;
+                    SideSize = (double)sideSize;
+                    ChamferPrecent = (double)chamferPrecent;
+                    ChamferSize = SideSize / 100 * ChamferPrecent;
 
                     var coordinate = sideSize / 2;
 
                     for (var yMul = 1; yMul > -2; yMul -= 2)
                     {
-                        for (var j = 36; j < 180; j += 36)
+                        for (var j = 45; j < 360; j += 90)
                         {
-                            var xMul = Math.Sin(j) * 10 / Math.Abs(Math.Sin(j) * 10) * -1;
-                            var zMul = Math.Cos(j) * 10 / Math.Abs(Math.Cos(j) * 10);
+                            var xMul = Math.Cos(j / (180 / Math.PI)) / Math.Abs(Math.Cos(j / (180 / Math.PI)));
+                            var zMul = Math.Sin(j / (180 / Math.PI)) / Math.Abs(Math.Sin(j / (180 / Math.PI))) * - 1;
 
-                            if (CubeChamferPrecent == 0)
+                            if (ChamferPrecent == 0)
                             {
                                 result.Add(new Point3D()
                                 {
@@ -105,21 +133,21 @@ namespace CrossSection.Models
                                 result.Add(new Point3D()
                                 {
                                     X = (double)coordinate * xMul,
-                                    Y = (double)(coordinate - (СubeChamfer / 2)) * yMul,
-                                    Z = (double)(coordinate - (СubeChamfer / 2)) * zMul
+                                    Y = (double)(coordinate - (ChamferSize / 2)) * yMul,
+                                    Z = (double)(coordinate - (ChamferSize / 2)) * zMul
                                 });
 
                                 result.Add(new Point3D()
                                 {
-                                    X = (double)(coordinate - (СubeChamfer / 2)) * xMul,
+                                    X = (double)(coordinate - (ChamferSize / 2)) * xMul,
                                     Y = (double)coordinate * yMul,
-                                    Z = (double)(coordinate - (СubeChamfer / 2)) * zMul
+                                    Z = (double)(coordinate - (ChamferSize / 2)) * zMul
                                 });
 
                                 result.Add(new Point3D()
                                 {
-                                    X = (double)(coordinate - (СubeChamfer / 2)) * xMul,
-                                    Y = (double)(coordinate - (СubeChamfer / 2)) * yMul,
+                                    X = (double)(coordinate - (ChamferSize / 2)) * xMul,
+                                    Y = (double)(coordinate - (ChamferSize / 2)) * yMul,
                                     Z = (double)coordinate * zMul
                                 });
                             }
@@ -143,7 +171,7 @@ namespace CrossSection.Models
             int IV = 0;
 
             var result = new Int32Collection();
-            if (CubeChamferPrecent != 0)
+            if (ChamferPrecent != 0)
             {
                 // Триангулируем восемь треугольников по углам куба.
                 int k = 0;
@@ -402,6 +430,109 @@ namespace CrossSection.Models
                     TriangleIndices = Triangle();
                 }
             }
+        }
+
+        /// <summary>
+        /// Реализация поперечного сечения куба двумя поперечными плоскостями.
+        /// </summary>
+        /// <param name="UpY">Плоскость в положительной части оси Y.</param>
+        /// <param name="DownY">Плоскость в отрицательной части оси Y.</param>
+        /// <returns></returns>
+        public IGeometry CrossSection(double UpY, double DownY)
+        {
+            IGeometry result = new CubeGeometry();
+
+            if (UpY == 0 && DownY == 0)
+            {
+                result.Positions = null;
+                result.TriangleIndices = null;
+                return result;
+            }
+
+            result.BuildGeometry(new object[] { (double?)SideSize, (double?)ChamferPrecent });
+
+            // Новый набор вершин.
+            var crossCube = new Point3DCollection();
+
+            // Построим усечённый куб.
+            var coordinate = SideSize / 2;
+
+            for (var yMul = 1; yMul > -2; yMul -= 2)
+            {
+                double coordinateY;
+                if (yMul > 0)
+                {
+                    if (UpY < coordinate)
+                    {
+                        coordinateY = UpY;
+                    }
+                    else
+                    {
+                        coordinateY = coordinate;
+                    }
+                }
+                else if (yMul < 0)
+                {
+                    if (Math.Abs(DownY) < coordinate)
+                    {
+                        coordinateY = Math.Abs(DownY);
+                    }
+                    else
+                    {
+                        coordinateY = coordinate;
+                    }
+                }
+                else
+                {
+                    throw new Exception("Переменная yMul не должна быть равна нулю.");
+                }
+
+                for (var j = 45; j < 360; j += 90)
+                {
+                    var xMul = Math.Cos(j / (180 / Math.PI)) / Math.Abs(Math.Cos(j / (180 / Math.PI)));
+                    var zMul = Math.Sin(j / (180 / Math.PI)) / Math.Abs(Math.Sin(j / (180 / Math.PI))) * -1;
+
+                    if (ChamferPrecent == 0)
+                    {
+                        crossCube.Add(new Point3D()
+                        {
+                            X = (double)coordinate * xMul,
+                            Y = (double)coordinateY * yMul,
+                            Z = (double)coordinate * zMul
+                        });
+                    }
+                    else
+                    {
+                        crossCube.Add(new Point3D()
+                        {
+                            X = (double)coordinate * xMul,
+                            Y = (double)(coordinateY - (ChamferSize / 2)) * yMul,
+                            Z = (double)(coordinate - (ChamferSize / 2)) * zMul
+                        });
+
+                        crossCube.Add(new Point3D()
+                        {
+                            X = (double)(coordinate - (ChamferSize / 2)) * xMul,
+                            Y = (double)coordinateY * yMul,
+                            Z = (double)(coordinate - (ChamferSize / 2)) * zMul
+                        });
+
+                        crossCube.Add(new Point3D()
+                        {
+                            X = (double)(coordinate - (ChamferSize / 2)) * xMul,
+                            Y = (double)(coordinateY - (ChamferSize / 2)) * yMul,
+                            Z = (double)coordinate * zMul
+                        });
+                    }
+                }
+            }
+
+            Positions = crossCube;
+            TriangleIndices = Triangle();
+            result.Positions = Positions;
+            result.TriangleIndices = TriangleIndices;
+
+            return result;
         }
 
         #endregion Методы.
