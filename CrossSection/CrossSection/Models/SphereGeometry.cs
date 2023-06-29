@@ -142,6 +142,36 @@ namespace CrossSection.Models
         }
         private int _positionsCount = 0;
 
+        /// <summary>
+        /// Наименьшая по модулю координата произведённого поперечного сечения в положительной части оси Y.
+        /// Если сечение не производилось, то null.
+        /// </summary>
+        public double? LastSectionCoordinateUpY
+        {
+            get => _lastSectionCoordinateUpY;
+            set
+            {
+                _lastSectionCoordinateUpY = value;
+                OnPropertyChanged(nameof(LastSectionCoordinateUpY));
+            }
+        }
+        private double? _lastSectionCoordinateUpY = null;
+
+        /// <summary>
+        /// Наименьшая по модулю координата произведённого поперечного сечения в отрицательной части оси Y.
+        /// Если сечение не производилось, то null.
+        /// </summary>
+        public double? LastSectionCoordinateDownY
+        {
+            get => _lastSectionCoordinateDownY;
+            set
+            {
+                _lastSectionCoordinateDownY = value;
+                OnPropertyChanged(nameof(LastSectionCoordinateDownY));
+            }
+        }
+        private double? _lastSectionCoordinateDownY = null;
+
         #endregion Свойства.
 
         /// <summary>
@@ -380,6 +410,10 @@ namespace CrossSection.Models
                 {
                     Positions = GetPointsGeometry(new object[] { angleStep, radius });
                     TriangleIndices = Triangle();
+
+                    // Обнуляем сечения.
+                    LastSectionCoordinateUpY = null;
+                    LastSectionCoordinateDownY = null;
                 }
             }
         }
@@ -398,10 +432,37 @@ namespace CrossSection.Models
             {
                 result.Positions = null;
                 result.TriangleIndices = null;
+
+                LastSectionCoordinateUpY = 0;
+                LastSectionCoordinateDownY = 0;
+
                 return result;
             }
 
+            // При повторном сечении выбираем максимальный уже осуществлённый ранее срез.
+            if (LastSectionCoordinateUpY != null)
+            {
+                if (LastSectionCoordinateUpY < UpY)
+                {
+                    UpY = (double)LastSectionCoordinateUpY;
+                }
+            }
+
+            // При повторном сечении выбираем максимальный уже осуществлённый ранее срез.
+            if (LastSectionCoordinateDownY != null)
+            {
+                if (Math.Abs((double)LastSectionCoordinateDownY) < Math.Abs(DownY))
+                {
+                    DownY = (double)LastSectionCoordinateDownY;
+                }
+            }
+
+            // Собираем изначальную геометрию.
             result.BuildGeometry(new object[] { (double?)AngleStep, (double?)Radius });
+
+            // Заносим сечение в свойства после их обнуления.
+            LastSectionCoordinateDownY = DownY;
+            LastSectionCoordinateUpY = UpY;
 
             // 1. Определить не совпадает ли верхняя и нижняя плоскости с поперечным кольцом сферы по оси Y.
             // если совпадает, то это кольцо и есть поперечное сечение, если нет, то нужно добавить кольцо в

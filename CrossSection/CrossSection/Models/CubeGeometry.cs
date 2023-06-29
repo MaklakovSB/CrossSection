@@ -78,6 +78,36 @@ namespace CrossSection.Models
         }
         private double _chamferSize = 0;
 
+        /// <summary>
+        /// Наименьшая по модулю координата произведённого поперечного сечения в положительной части оси Y.
+        /// Если сечение не производилось, то null.
+        /// </summary>
+        public double? LastSectionCoordinateUpY 
+        {
+            get => _lastSectionCoordinateUpY;
+            set
+            {
+                _lastSectionCoordinateUpY = value;
+                OnPropertyChanged(nameof(LastSectionCoordinateUpY));
+            }
+        }
+        private double? _lastSectionCoordinateUpY = null;
+
+        /// <summary>
+        /// Наименьшая по модулю координата произведённого поперечного сечения в отрицательной части оси Y.
+        /// Если сечение не производилось, то null.
+        /// </summary>
+        public double? LastSectionCoordinateDownY 
+        { 
+            get => _lastSectionCoordinateDownY;
+            set 
+            {
+                _lastSectionCoordinateDownY = value;
+                OnPropertyChanged(nameof(LastSectionCoordinateDownY));
+            } 
+        }
+        private double? _lastSectionCoordinateDownY = null;
+
         #endregion Свойства.
 
         /// <summary>
@@ -428,6 +458,10 @@ namespace CrossSection.Models
                 {
                     Positions = GetPointsGeometry(new object[] { sideSize, chamferPrecent });
                     TriangleIndices = Triangle();
+
+                    // Обнуляем сечения.
+                    LastSectionCoordinateUpY = null;
+                    LastSectionCoordinateDownY = null;
                 }
             }
         }
@@ -442,14 +476,42 @@ namespace CrossSection.Models
         {
             IGeometry result = new CubeGeometry();
 
-            if (UpY == 0 && DownY == 0)
+            // Случай когда при сечении от геометрии ни чего не остаётся.
+            if ((UpY == 0 && DownY == 0) || (LastSectionCoordinateUpY == 0 && LastSectionCoordinateDownY == 0))
             {
                 result.Positions = null;
                 result.TriangleIndices = null;
+
+                LastSectionCoordinateUpY = 0;
+                LastSectionCoordinateDownY = 0;
+
                 return result;
             }
 
+            // При повторном сечении выбираем максимальный уже осуществлённый ранее срез.
+            if (LastSectionCoordinateUpY != null)
+            {
+                if (LastSectionCoordinateUpY < UpY)
+                {
+                    UpY = (double)LastSectionCoordinateUpY;
+                }
+            }
+
+            // При повторном сечении выбираем максимальный уже осуществлённый ранее срез.
+            if (LastSectionCoordinateDownY != null)
+            {
+                if (Math.Abs((double)LastSectionCoordinateDownY) < Math.Abs(DownY) )
+                {
+                    DownY = (double)LastSectionCoordinateDownY;
+                }
+            }
+
+            // Собираем изначальную геометрию.
             result.BuildGeometry(new object[] { (double?)SideSize, (double?)ChamferPrecent });
+
+            // Заносим сечение в свойства после их обнуления.
+            LastSectionCoordinateDownY = DownY;
+            LastSectionCoordinateUpY = UpY;
 
             // Новый набор вершин.
             var crossCube = new Point3DCollection();
